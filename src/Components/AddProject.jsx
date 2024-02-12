@@ -1,68 +1,92 @@
 import { Modal, Button } from 'react-bootstrap';
-import React, { useEffect, useState } from 'react'
+import React, { useContext, useEffect, useState } from 'react'
 import uploadProfileImage from '../assets/Images/imgholder.png'
+import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { addProjectAPI } from '../Services/allAPIs'
+import { addProjectResponseContext } from '../Context API/ContextShare';
+
 
 
 function AddProject() {
-  const [preview,setPreview]=useState("")
-  const [fileStatus,setFileStatus]=useState(false)
+  // get context
+  const {addProjectResponse,setAddProjectResponse} = useContext(addProjectResponseContext)
+  const [preview, setPreview] = useState("")
+  const [fileStatus, setFileStatus] = useState(false)
   const [show, setShow] = useState(false)
-  const [projectData,setProjectData] =useState({
-    title:"",languages:"",overview:"",github:"",website:"",projectImage:""
+  const [projectData, setProjectData] = useState({
+    title: "", languages: "", overview: "", github: "", website: "", projectImage: ""
   })
   console.log(projectData);
   const handleShow = () => setShow(true);
   const handleClose = () => {
     setShow(false);
     setProjectData({
-      title:"",languages:"",overview:"",github:"",website:"",projectImage:""
+      title: "", languages: "", overview: "", github: "", website: "", projectImage: ""
     })
     setPreview("")
   }
-  useEffect(()=>{
+  useEffect(() => {
     console.log(projectData.projectImage.type);
-    if (projectData.projectImage.type=="image/png" || projectData.projectImage.type=="image/jpg" ||  projectData.projectImage.type=="image/jpeg" ) {
+    if (projectData.projectImage.type == "image/png" || projectData.projectImage.type == "image/jpg" || projectData.projectImage.type == "image/jpeg") {
       console.log("generate image URL");
       setPreview(URL.createObjectURL(projectData.projectImage));
       setFileStatus(false)
-    }else{
+    } else {
       console.log("Please upload following extensions (png,jpg,jpeg) only");
       setFileStatus(true)
       setPreview("")
-      setProjectData({...projectData,projectImage:""})
+      setProjectData({ ...projectData, projectImage: "" })
     }
-  },[projectData.projectImage])  
+  }, [projectData.projectImage])
 
-  const handleAddProject = ()=>{
-    const {title,languages,overview,github,website,projectImage}=projectData
+  const handleAddProject = async () => {
+    const { title, languages, overview, github, website, projectImage } = projectData
     if (!title || !languages || !overview || !github || !website || !projectImage) {
       toast.info("Please fill the form completely")
-    }else{
+    } else {
       // api call - reqBody
       const reqBody = new FormData()
-      reqBody.append("title",title)
-      reqBody.append("languages",languages)
-      reqBody.append("overview",overview)
-      reqBody.append("github",github)
-      reqBody.append("website",website)
-      reqBody.append("projectImage",projectImage)
+      reqBody.append("title", title)
+      reqBody.append("languages", languages)
+      reqBody.append("overview", overview)
+      reqBody.append("github", github)
+      reqBody.append("website", website)
+      reqBody.append("projectImage", projectImage)
       // api call - reHeader
       const token = sessionStorage.getItem("token")
       if (token) {
         const reqHeader = {
-          "Content-Type":"multipart/form-data",
-          "Authorization":`Bearer ${token}`
+          "Content-Type": "multipart/form-data",
+          "Authorization": `Bearer ${token}`
         }
+
+        // api call
+        try {
+          const result = await addProjectAPI(reqBody, reqHeader)
+          console.log(result);
+          if (result.status === 200) {
+            console.log(result.data);
+            handleClose()
+            setAddProjectResponse(result.data)
+          } else {
+            toast.warning(result.response.data)
+          }
+        } catch (err) {
+
+          console.log(err);
+
+        }
+
+
       }
-      
-      // api call
     }
   }
- 
-  return (
-    <>
-      <button onClick={handleShow} className='btn btn-success'><i className='fa-solid fa-plus'></i>Add Project</button>
+    return (
+      <>
+        
+
+        <button onClick={handleShow} className='btn btn-success text-dark' style={{marginLeft:'490px'}}><i className='fa-solid fa-plus '></i>Add Project</button>
       <Modal
         show={show}
         size='lg'
@@ -111,8 +135,11 @@ function AddProject() {
       <Button onClick={handleAddProject} variant="primary">Add</Button>
     </Modal.Footer>
       </Modal >
-    </>
-  )
+      <ToastContainer autoClose={3000} theme='colored'/>
+
+      </>
+    )
+  
 }
 
 export default AddProject
