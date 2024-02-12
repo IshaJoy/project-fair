@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react'
 import { Collapse } from 'react-bootstrap'
-import uploadProfile from '../assets/Images/upload.png'
+import uploadProfile from '../assets/Images/Upload.png'
 import { SERVER_URL } from '../Services/serverUrl';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
